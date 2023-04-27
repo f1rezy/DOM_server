@@ -1,19 +1,30 @@
 import datetime
 import json
-from uuid import UUID
+import os
+from random import choices
+from uuid import uuid4
 
 from flask import Blueprint
 from flask import jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token, set_access_cookies, unset_jwt_cookies, jwt_required, \
     current_user, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 
 from database import db
-from models import User
+from models import User, Task
+
+UPLOAD_FOLDER = '/files'
+ALLOWED_EXTENSIONS = {'mp4', 'pdf', 'png', 'jpg', 'jpeg'}
 
 bp = Blueprint('api', __name__)
 
 jwt = JWTManager()
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @jwt.user_identity_loader
@@ -42,6 +53,86 @@ def refresh_expiring_jwts(response):
         return response
 
 
+@bp.route("/students", methods=["GET"])
+@jwt_required()
+def get_students():
+    if current_user.isAdmin is True:
+        users = User.query.filter_by(isAdmin=False).all()
+        return jsonify({'users': [user.data for user in users]})
+    else:
+        return jsonify({"status": False, "message": "У мужлан нет прав"}), 401
+
+
+@bp.route("/update_code", methods=["GET"])
+@jwt_required()
+def update_code():
+    if current_user.isAdmin:
+        while True:
+            code = "".join(choices("1234567890", k=6))
+            codes = [i.code for i in User.query.filter_by(isAdmin=True).all()]
+            if code in codes:
+                continue
+            break
+        current_user.code = code
+        db.session.commit()
+        return jsonify({"status": True, "code": code})
+    else:
+        return jsonify({"status": False, "message": "У мужлан нет прав"}), 401
+
+
+@bp.route("/tasks", methods=["GET"])
+@jwt_required()
+def get_tasks():
+    tasks_id = current_user.tasks
+    tasks = Task.query.filter_by(id in tasks_id).all()
+    return jsonify([task.data | {} for task in tasks])
+
+
+@bp.route("/task", methods=["POST"])
+@jwt_required()
+def post_task():
+    if current_user.isAdmin:
+        title = request.json.get("title", None)
+        description = request.json.get("description", None)
+        people_id = request.json.get("people_id", None)
+        print(people_id)
+
+        task = Task.query.filter_by(title=title).one_or_none()
+        if not task and title and people_id:
+            task = Task(title=title, description=description, fp='DICK', people_id=people_id)
+            db.session.add(task)
+            users = db.session.query(User).all()
+            print(users)
+            for user in users:
+                if user.id in people_id:
+                    print(user.username)
+                    user.tasks = {task.id: False}
+
+            db.session.commit()
+            return jsonify({"status": True})
+
+        return jsonify({"status": False})
+    return jsonify({"status": False, "message": "У мужлан нет прав"}), 401
+
+
+@bp.route("/test", methods=["POST"])
+@jwt_required()
+def test():
+    if current_user.isAdmin:
+        print(request.files)
+        if 'file' not in request.files:
+            print("PISUN")
+            return jsonify({"status": False})
+        file = request.files['file']
+        if file.filename == '':
+            print("SOSUN")
+            return jsonify({"status": False})
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            return jsonify({"status": True})
+
+
 @bp.route("/login", methods=["POST"])
 def login():
     username = request.json.get("username", None)
@@ -60,6 +151,7 @@ def login():
     access_token = create_access_token(identity=user.id)
     set_access_cookies(response, access_token)
     return response
+
 
 @bp.route("/register", methods=["POST"])
 def register():
