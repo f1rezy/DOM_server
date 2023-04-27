@@ -14,7 +14,7 @@ from werkzeug.utils import secure_filename
 from database import db
 from models import User, Task
 
-UPLOAD_FOLDER = '/files'
+UPLOAD_FOLDER = '/Users/daniillitvinenko/PycharmProjects/mission_space/app/files'
 ALLOWED_EXTENSIONS = {'mp4', 'pdf', 'png', 'jpg', 'jpeg'}
 
 bp = Blueprint('api', __name__)
@@ -131,6 +131,17 @@ def test():
             filename = secure_filename(file.filename)
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             return jsonify({"status": True})
+
+
+@bp.route("/set_task_status", methods=["PUT"])
+@jwt_required()
+def set_task_status():
+    task_id = request.json.get("task_id", None)
+    data = json.loads(current_user.tasks)
+    data[str(task_id)] = True
+    current_user.tasks = json.dumps(data)
+    db.session.commit()
+    return jsonify({"status": True})
 
 
 @bp.route("/login", methods=["POST"])
