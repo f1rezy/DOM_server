@@ -63,6 +63,16 @@ def get_students():
         return jsonify({"status": False, "message": "У мужлан нет прав"}), 401
 
 
+@bp.route("/is_admin", methods=["GET"])
+@jwt_required()
+def is_admin():
+    if current_user.isAdmin:
+        return jsonify({"status": True})
+    else:
+        return jsonify({"status": False})
+    return jsonify({"status": False, "message": "У мужлан нет прав"}), 401
+
+
 @bp.route("/update_code", methods=["GET"])
 @jwt_required()
 def update_code():
@@ -83,9 +93,18 @@ def update_code():
 @bp.route("/tasks", methods=["GET"])
 @jwt_required()
 def get_tasks():
-    tasks_id = current_user.tasks
-    tasks = Task.query.filter_by(id in tasks_id).all()
-    return jsonify([task.data | {} for task in tasks])
+    tasks_data = json.loads(current_user.tasks)
+    print(tasks_data.keys())
+    tasks = db.session.query(Task).all()
+    return jsonify([task.data | {"status": tasks_data[str(task.id)]} for task in tasks if str(task.id) in tasks_data.keys()])
+
+
+@bp.route("/task", methods=["GET"])
+@jwt_required()
+def get_task():
+    task_id = request.json.get("task_id", None)
+    task = Task.query.filter_by(id=task_id).one_or_none()
+    return jsonify({"status": True, "description": task.description, "file": ""})
 
 
 @bp.route("/task", methods=["POST"])
@@ -95,24 +114,18 @@ def post_task():
         title = request.json.get("title", None)
         description = request.json.get("description", None)
         people_id = request.json.get("people_id", None)
-        print(people_id)
-
         task = Task.query.filter_by(title=title).one_or_none()
         if not task and title and people_id:
             task = Task(title=title, description=description, fp='DICK', people_id=people_id)
             db.session.add(task)
             users = db.session.query(User).all()
-            print(users)
             for user in users:
-                if user.id in people_id:
-                    print(user.username)
-                    user.tasks = {task.id: False}
+                if str(user.id) in people_id:
+                    user.tasks = json.dumps(json.loads(user.tasks) | {str(task.id): False})
+                    db.session.commit()
 
             db.session.commit()
             return jsonify({"status": True})
-
-        return jsonify({"status": False})
-    return jsonify({"status": False, "message": "У мужлан нет прав"}), 401
 
 
 @bp.route("/test", methods=["POST"])
