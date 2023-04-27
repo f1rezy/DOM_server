@@ -10,7 +10,7 @@ from flask_jwt_extended import JWTManager, create_access_token, set_access_cooki
     current_user, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
-from sqlalchemy.dialects.postgresql import UUID
+from uuid import UUID
 
 from database import db
 from models import User, Task
@@ -100,12 +100,12 @@ def get_tasks():
     return jsonify([task.data | {"status": tasks_data[str(task.id)]} for task in tasks if str(task.id) in tasks_data.keys()])
 
 
-@bp.route("/task", methods=["GET"])
+@bp.route("/task/", methods=["GET"])
 @jwt_required()
 def get_task():
-    task_id = UUID(request.json.get("task_id", None))
+    task_id = UUID(request.args.get("task_id", None))
     task = Task.query.filter_by(id=task_id).one_or_none()
-    return jsonify({task.data})
+    return jsonify(task.data)
 
 
 @bp.route("/task", methods=["POST"])
