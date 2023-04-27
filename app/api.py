@@ -10,11 +10,12 @@ from flask_jwt_extended import JWTManager, create_access_token, set_access_cooki
     current_user, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
+from sqlalchemy.dialects.postgresql import UUID
 
 from database import db
 from models import User, Task
 
-UPLOAD_FOLDER = '/Users/daniillitvinenko/PycharmProjects/mission_space/app/files'
+UPLOAD_FOLDER = os.path.abspath('files')
 ALLOWED_EXTENSIONS = {'mp4', 'pdf', 'png', 'jpg', 'jpeg'}
 
 bp = Blueprint('api', __name__)
@@ -102,9 +103,9 @@ def get_tasks():
 @bp.route("/task", methods=["GET"])
 @jwt_required()
 def get_task():
-    task_id = request.json.get("task_id", None)
+    task_id = UUID(request.json.get("task_id", None))
     task = Task.query.filter_by(id=task_id).one_or_none()
-    return jsonify({"status": True, "description": task.description, "file": ""})
+    return jsonify({task.data})
 
 
 @bp.route("/task", methods=["POST"])
@@ -113,10 +114,19 @@ def post_task():
     if current_user.isAdmin:
         title = request.json.get("title", None)
         description = request.json.get("description", None)
+        type = request.json.get("type", None)
         people_id = request.json.get("people_id", None)
+        if 'file' not in request.files:
+            return jsonify({"status": False})
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"status": False})
         task = Task.query.filter_by(title=title).one_or_none()
-        if not task and title and people_id:
-            task = Task(title=title, description=description, fp='DICK', people_id=people_id)
+        if not task and title and people_id and type and file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
+            task = Task(title=title, description=description, type=type, fp=file_path, people_id=people_id)
             db.session.add(task)
             users = db.session.query(User).all()
             for user in users:
@@ -125,24 +135,6 @@ def post_task():
                     db.session.commit()
 
             db.session.commit()
-            return jsonify({"status": True})
-
-
-@bp.route("/test", methods=["POST"])
-@jwt_required()
-def test():
-    if current_user.isAdmin:
-        print(request.files)
-        if 'file' not in request.files:
-            print("PISUN")
-            return jsonify({"status": False})
-        file = request.files['file']
-        if file.filename == '':
-            print("SOSUN")
-            return jsonify({"status": False})
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(UPLOAD_FOLDER, filename))
             return jsonify({"status": True})
 
 
