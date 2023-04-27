@@ -20,6 +20,7 @@ class Task(BaseModel):
     @property
     def data(self):
         return {
+            "id": self.id,
             "title": self.title,
             "description": self.description,
             "type": self.type,
