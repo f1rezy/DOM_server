@@ -116,17 +116,9 @@ def post_task():
         description = request.json.get("description", None)
         type = request.json.get("type", None)
         people_id = request.json.get("people_id", None)
-        if 'file' not in request.files:
-            return jsonify({"status": False})
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({"status": False})
         task = Task.query.filter_by(title=title).one_or_none()
-        if not task and title and people_id and type and file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
-            task = Task(title=title, description=description, type=type, fp=file_path, people_id=people_id)
+        if not task and title and people_id and type:
+            task = Task(title=title, description=description, type=type, fp="DICK", people_id=people_id)
             db.session.add(task)
             users = db.session.query(User).all()
             for user in users:
@@ -136,6 +128,7 @@ def post_task():
 
             db.session.commit()
             return jsonify({"status": True})
+        return jsonify({"status": False})
 
 
 @bp.route("/set_task_status", methods=["PUT"])

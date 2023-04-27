@@ -21,6 +21,7 @@ class User(BaseModel):
     @property
     def data(self):
         return {
+            "id": self.id,
             "username": self.username,
             "name": self.name,
             "surname": self.surname,
