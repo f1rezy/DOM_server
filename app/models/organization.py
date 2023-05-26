@@ -22,4 +22,5 @@ class Organization(BaseModel):
     city = db.relationship("City", back_populates="organization")
     user_info = db.relationship("UserInfo", back_populates="organization")
     events = db.relationship("Event", back_populates="organization")
+    organization_role_user = db.relationship("OrganizationRoleUser", back_populates="organization")
 

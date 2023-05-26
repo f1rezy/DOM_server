@@ -1,6 +1,8 @@
 from database import db
 from .base import BaseModel
 
+from many_to_many_relations import event_to_user_info, event_to_field
+
 
 class Event(BaseModel):
     __tablename__ = "event"
@@ -28,3 +30,9 @@ class Event(BaseModel):
     banner = db.relationship("File", back_populates="banner_event")
     docs = db.relationship("File", back_populates="doc_event")
     status = db.relationship("EventStatus", back_populates="events")
+
+    users_info = db.relationship("UserInfo", secondary=event_to_user_info, back_populates="events")
+    fields = db.relationship("Field", secondary=event_to_field, back_populates="events")
+
+
+

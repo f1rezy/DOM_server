@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from database import db
 from .base import BaseModel
+from .many_to_many_relations import event_to_user_info
 
 
 class UserInfo(BaseModel):
@@ -27,6 +28,9 @@ class UserInfo(BaseModel):
     role = db.relationship("Role", back_populates="users_info")
     subscription = db.relationship("Subscription", back_populates="user_info")
     icon = db.relationship("File", back_populates="user_info")
+
+    events = db.relationship("Event", secondary=event_to_user_info, back_populates="users_info")
+    organization_role_user = db.relationship("OrganizationRoleUser", back_populates="user")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
