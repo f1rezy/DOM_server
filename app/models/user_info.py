@@ -15,13 +15,18 @@ class UserInfo(BaseModel):
     city_id = db.Column(db.INTEGER())
     phone = db.Column(db.TEXT())
     password = db.Column(db.String(128))
-    organization_id = db.Column(db.INTEGER(), db.ForeignKey("organization.id"))
+    organization_id = db.Column(db.ForeignKey("organization.id"))
     role_id = db.Column(db.INTEGER(), db.ForeignKey("role.id"))
-    subscription_id = db.Column(db.INTEGER(), db.ForeignKey('subscription.id'))
+    subscription_id = db.Column(db.ForeignKey('subscription.id'))
     phone_public = db.Column(db.BOOLEAN(), default=False)
-    icon_id = db.Column(db.INTEGER())
+    icon_id = db.Column(db.ForeignKey('file.id'))
     email_confirmed = db.Column(db.BOOLEAN(), default=False)
     phone_confirmed = db.Column(db.BOOLEAN(), default=False)
+
+    organization = db.relationship("Organization", back_populates="user_info")
+    role = db.relationship("Role", back_populates="users_info")
+    subscription = db.relationship("Subscription", back_populates="user_info")
+    icon = db.relationship("File", back_populates="user_info")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

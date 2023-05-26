@@ -5,8 +5,9 @@ from sqlalchemy.dialects.postgresql import JSON
 
 
 class Subscription(BaseModel):
-    __tablename__ = "event"
+    __tablename__ = "subscription"
 
-    user_info_id = db.Column(db.INTEGER(), db.ForeignKey('user_info.id'))
-    user_info = db.relationship(back_populates="user_info")
+    user_info_id = db.Column(db.ForeignKey('user_info.id'))
     filter = db.Column(JSON())
+
+    user_info = db.relationship("UserInfo", back_populates="subscription")

@@ -8,3 +8,4 @@ class Role(BaseModel):
 
     name = db.Column(db.VARCHAR(20))
 
+    users_info = db.relationship("UserInfo", back_populates="role")

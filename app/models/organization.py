@@ -17,7 +17,9 @@ class Organization(BaseModel):
     region_id = db.Column(db.ForeignKey("region.id"))
     city_id = db.Column(db.ForeignKey("city.id"))
 
-    region = db.relationship(back_populates="organization")
-    file = db.relationship(back_poputales="organization")
-    city = db.relationship(back_populates="organization")
+    logo = db.relationship("File", back_poputales="organization")
+    region = db.relationship("Region", back_populates="organization")
+    city = db.relationship("City", back_populates="organization")
+    user_info = db.relationship("UserInfo", back_populates="organization")
+    events = db.relationship("Event", back_populates="organization")
 
