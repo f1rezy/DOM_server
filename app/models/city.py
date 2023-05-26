@@ -8,6 +8,6 @@ class City(BaseModel):
 
     name = db.Column(db.VARCHAR(50))
 
-    organization = db.relationship(back_populates="city")
+    organization = db.relationship("Organization", back_populates="city")
 
 

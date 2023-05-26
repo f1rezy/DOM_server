@@ -8,4 +8,4 @@ class Region(BaseModel):
 
     name = db.Column(db.VARCHAR(30))
 
-    organization = db.relationship(back_populates="region")
+    organization = db.relationship("Organization", back_populates="region")
