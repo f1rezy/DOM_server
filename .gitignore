@@ -16,3 +16,5 @@ venv.bak/
 
 app/venv
 app/.idea
+
+*.DS_Store
