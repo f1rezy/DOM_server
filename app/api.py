@@ -219,12 +219,3 @@ def add_file():
     db.session.commit()
     return jsonify({"status": True})
 
-
-@bp.route("/file", methods=["POST"])
-def add_file():
-    upload = request.files["file"]
-    file = File(name=upload.filename, data=upload.read())
-    db.session.add(file)
-    db.session.commit()
-    return jsonify({"status": True})
-
