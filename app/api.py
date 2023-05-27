@@ -161,11 +161,14 @@ def create_organization():
 
 @bp.route("/events", methods=["GET"])
 def get_events():
-    # online = request.args.get('online', type=bool)
-    # level = request.args.get('level', type=str)
-    # region = request.args.get('region', type=bool)
-    # city = request.args.get('city', type=bool)
-    # start_age =
+    name = request.args.get('name', type=str)
+    online = request.args.get('online', type=bool)
+    level = request.args.get('level', type=str)
+    region = request.args.get('region', type=str)
+    city = request.args.get('city', type=str)
+    start_age = request.args.get("start_age", type=int)
+    end_age = request.args.get("end_date", type=int)
+
     return jsonify([
         {
             "id": event.id,
@@ -266,4 +269,6 @@ def get_file(id):
     return send_file(BytesIO(file.data), download_name=file.name, as_attachment=True)
 
 
-
+@bp.route("/regions", methods=["GET"])
+def get_regions():
+    return jsonify([region.data for region in db.session.query(Region).all()])
