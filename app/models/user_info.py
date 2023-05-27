@@ -32,8 +32,20 @@ class UserInfo(BaseModel):
     events = db.relationship("Event", secondary=event_to_user_info, back_populates="users_info")
     organization_role_user = db.relationship("OrganizationRoleUser", back_populates="user_info")
 
+    @property
+    def data(self):
+        return {
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "second_name": self.second_name,
+            "region_id": self.region_id,
+            "city_id": self.city_id,
+            "phone": self.phone
+        }
+
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password, password)

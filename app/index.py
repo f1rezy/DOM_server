@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from api import bp, jwt
 from database import db
 from flask_cors import CORS
-import models
+from models import *
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL",
@@ -17,7 +17,7 @@ app.config["JWT_SECRET_KEY"] = "secret"
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 app.config["JWT_COOKIE_SAMESITE"] = "NONE"
-app.config["JWT_COOKIE_SECURE"] = True
+# app.config["JWT_COOKIE_SECURE"] = True
 
 cors = CORS(app, resources={r"/api/*": {"origins": "*", "supports_credentials": True}})
 db.init_app(app)
