@@ -1,4 +1,4 @@
-from sqlalchemy.ext.associationproxy import association_proxy
+from .many_to_many_relations import *
 from .base import BaseModel
 
 from database import db
@@ -10,10 +10,8 @@ class File(BaseModel):
 
     name = db.Column(db.VARCHAR(50))
     data = db.Column(BYTEA())
+    type = db.Column(db.VARCHAR(30))
 
     user_info = db.relationship("UserInfo", back_populates="icon")
-    event_files = db.relationship("EventFile", back_populates="event")
+    event = db.relationship("Event", secondary=event_to_file, back_populates="files")
     organization = db.relationship("Organization", back_populates="logo")
-
-    events = association_proxy("event_files", "file")
-
