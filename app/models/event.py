@@ -1,7 +1,7 @@
 from database import db
 from .base import BaseModel
 
-from many_to_many_relations import event_to_user_info, event_to_field
+from .many_to_many_relations import event_to_user_info, event_to_field
 
 
 class Event(BaseModel):
@@ -16,12 +16,10 @@ class Event(BaseModel):
     end_date = db.Column(db.DATE(), nullable=True)
     level_id = db.Column(db.ForeignKey("level.id"))
     ages = db.Column(db.TEXT())
-    user_info_id = db.Column(db.INTEGER(), db.ForeignKey())
     organization_id = db.Column(db.ForeignKey('organization.id'))
     extra = db.Column(db.TEXT(), nullable=True)
     banner_id = db.Column(db.ForeignKey('file.id'))
     doc_id = db.Column(db.ForeignKey('file.id'))
-    field_id = db.Column(db.ForeignKey('????.id'))
     status_id = db.Column(db.ForeignKey('event_status.id'))
     origin = db.Column(db.TEXT(), nullable=True)
 

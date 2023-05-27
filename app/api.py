@@ -5,9 +5,9 @@ from flask import jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token, set_access_cookies, unset_jwt_cookies, jwt_required, \
     current_user, get_jwt_identity, get_jwt
 from werkzeug.security import generate_password_hash
-from uuid import UUID
 
 from database import db
+from models import UserInfo
 
 bp = Blueprint('api', __name__)
 
@@ -22,7 +22,7 @@ def user_identity_lookup(user):
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
-    return User.query.filter_by(id=identity).one_or_none()
+    return UserInfo.query.filter_by(id=identity).one_or_none()
 
 
 @bp.after_request
@@ -47,7 +47,7 @@ def login():
     print(request.json)
     print(username, password)
     try:
-        user = User.query.filter_by(username=username).one_or_none()
+        user = UserInfo.query.filter_by(email=username).one_or_none()
     except Exception as e:
         return jsonify({"msg": "error"})
 
@@ -65,10 +65,10 @@ def register():
     username = request.json.get("username", None)
     password = request.json.get("password", None)
 
-    user = User.query.filter_by(username=username).one_or_none()
+    user = UserInfo.query.filter_by(email=username).one_or_none()
 
     if not user and username and password:
-        db.session.add(User(username=username, password_hash=generate_password_hash(password)))
+        db.session.add(UserInfo(email=username, password_hash=generate_password_hash(password)))
         db.session.commit()
         return jsonify({"status": True})
 
