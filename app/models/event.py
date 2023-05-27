@@ -1,7 +1,6 @@
 from database import db
 from .base import BaseModel
-
-from many_to_many_relations import event_to_user_info, event_to_field
+from .many_to_many_relations import *
 
 
 class Event(BaseModel):
@@ -16,19 +15,14 @@ class Event(BaseModel):
     end_date = db.Column(db.DATE(), nullable=True)
     level_id = db.Column(db.ForeignKey("level.id"))
     ages = db.Column(db.TEXT())
-    user_info_id = db.Column(db.INTEGER(), db.ForeignKey())
     organization_id = db.Column(db.ForeignKey('organization.id'))
     extra = db.Column(db.TEXT(), nullable=True)
-    banner_id = db.Column(db.ForeignKey('file.id'))
-    doc_id = db.Column(db.ForeignKey('file.id'))
-    field_id = db.Column(db.ForeignKey('????.id'))
     status_id = db.Column(db.ForeignKey('event_status.id'))
     origin = db.Column(db.TEXT(), nullable=True)
 
     level = db.relationship("Level", back_populates="events")
     organization = db.relationship("Organization", back_populates="events")
-    banner = db.relationship("File", back_populates="banner_event")
-    docs = db.relationship("File", back_populates="doc_event")
+    files = db.relationship("File", secondary=event_to_file, back_populates="event")
     status = db.relationship("EventStatus", back_populates="events")
 
     users_info = db.relationship("UserInfo", secondary=event_to_user_info, back_populates="events")

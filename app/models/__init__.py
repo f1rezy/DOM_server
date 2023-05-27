@@ -10,7 +10,6 @@ from .organization_role import OrganizationRole
 from .organization_role_user import OrganizationRoleUser
 from .region import Region
 from .role import Role
-from .subscription import Subscription
 from .user_info import UserInfo
 
 __all__ = [
@@ -27,6 +26,6 @@ __all__ = [
     "OrganizationRoleUser",
     "Region",
     "Role",
-    "Subscription",
-    "UserInfo"
+    "UserInfo",
+    "event_to_file"
 ]

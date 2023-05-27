@@ -1,3 +1,4 @@
+from .many_to_many_relations import *
 from .base import BaseModel
 
 from database import db
@@ -12,6 +13,5 @@ class File(BaseModel):
     data = db.Column(BYTEA())
 
     user_info = db.relationship("UserInfo", back_populates="icon")
-    banner_event = db.relationship("Event", back_populates="banner")
-    doc_event = db.relationship("Event", back_populates="docs")
+    event = db.relationship("Event", secondary=event_to_file, back_populates="files")
     organization = db.relationship("Organization", back_populates="logo")
