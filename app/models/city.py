@@ -11,4 +11,9 @@ class City(BaseModel):
     organization = db.relationship("Organization", back_populates="city")
     user_info = db.relationship("UserInfo", back_populates="city")
 
-
+    @property
+    def data(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }

@@ -127,7 +127,7 @@ def create_organization():
     email = request.json.get("email", None)
     site = request.json.get("site", None)
     confirmed = request.json.get("confirmed", None)
-    logo = request.files["logo"]
+    # logo = request.files["logo"]
     region_id = request.json.get("region_id", None)
     city_id = request.json.get("city_id", None)
 
@@ -139,9 +139,9 @@ def create_organization():
                                     email=email, site=site, confirmed=confirmed, region_id=region_id,
                                     city_id=city_id)
         db.session.add(organization)
-        file = File(name=logo.filename, data=logo.read(), type="logo")
-        db.session.add(file)
-        organization.logo_id = file.id
+        # file = File(name=logo.filename, data=logo.read(), type="logo")
+        # db.session.add(file)
+        # organization.logo_id = file.id
         current_user.organization_id = organization.id
         admin_role = Role.query.filter_by(name="Admin").one_or_none()
         current_user.role_id = admin_role.id
@@ -158,7 +158,7 @@ def get_events():
             "id": event.id,
             "name": event.name,
             "online": event.online,
-            "region": event.organization.region.name if not event.online else "",
+            "region": event.organization.region.name,
             "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime(
                 '%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
             "level": event.level.name,
@@ -169,6 +169,57 @@ def get_events():
             "status": event.status.name,
             "fields": [str(field.name) for field in event.fields]
         } for event in db.session.query(Event).all()])
+
+
+@bp.route("/events-by-filter", methods=["GET"])
+def get_events_by_filter():
+    name = request.json.get('name', None)
+    level_id = request.json.get('level_id', None)
+    region_id = request.json.get('region_id', None)
+    city_id = request.json.get('city_id', None)
+    ages = request.json.get('ages', None)
+    fields_id = request.json.get('fields_id', None)
+    online = request.json.get('online', None)
+    fcdo = request.json.get('fcdo', None)
+
+    events = []
+    for event in db.session.query(Event).all():
+        if name and name not in event.name:
+            continue
+        if level_id and level_id != event.level_id:
+            continue
+        if region_id and region_id != event.organization.region_id:
+            continue
+        if city_id and city_id != event.organization.city_id:
+            continue
+        if ages and ages != event.ages:
+            continue
+        if fields_id:
+            for i in [str(j.id) for j in event.fields]:
+                if i in fields_id:
+                    if online == event.online and fcdo == event.fcdo:
+                        events.append(event)
+                        break
+        else:
+            if online == event.online and fcdo == event.fcdo:
+                events.append(event)
+
+    return jsonify([
+        {
+            "id": event.id,
+            "name": event.name,
+            "online": event.online,
+            "region": event.organization.region.name if not event.online else "",
+            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime(
+                '%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
+            "level": event.level.name,
+            "ages": event.ages,
+            "organization": event.organization.full_name,
+            "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", event.files)][0],
+            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
+            "status": event.status.name,
+            "fields": [str(field.name) for field in event.fields]
+        } for event in events])
 
 
 @bp.route("/event/<id>", methods=["GET"])
@@ -227,11 +278,12 @@ def create_event():
         event = Event.query.filter_by(name=name).one_or_none()
 
         if not event and name and description and online and fcdo and start_date and level and ages \
-                and organization_id and banner and doc and status:
+                and organization_id and fields and banner and doc and status:
             event = Event(name=name, description=description, reg_form=reg_form, online=online, fcdo=fcdo,
                           start_date=start_date, end_date=end_date, ages=ages,
                           organization_id=organization_id, extra=extra, origin=origin)
             db.session.add(event)
+            event.fields.extend(fields)
             status_id = db.session.query(EventStatus).filter(EventStatus.name == status).first()
             event.status_id = status_id
             level_id = db.session.query(Level).filter(Level.name == level).first()
@@ -257,3 +309,18 @@ def get_file(id):
 @bp.route("/regions", methods=["GET"])
 def get_regions():
     return jsonify([region.data for region in db.session.query(Region).all()])
+
+
+@bp.route("/cities", methods=["GET"])
+def get_cities():
+    return jsonify([city.data for city in db.session.query(City).all()])
+
+
+@bp.route("/levels", methods=["GET"])
+def get_levels():
+    return jsonify([level.data for level in db.session.query(Level).all()])
+
+
+@bp.route("/fields", methods=["GET"])
+def get_fields():
+    return jsonify([field.data for field in db.session.query(Field).all()])

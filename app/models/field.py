@@ -9,3 +9,10 @@ class Field(BaseModel):
     name = db.Column(db.TEXT())
 
     events = db.relationship("Event", secondary=event_to_field, back_populates="fields")
+
+    @property
+    def data(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
