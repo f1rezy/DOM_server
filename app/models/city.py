@@ -9,5 +9,6 @@ class City(BaseModel):
     name = db.Column(db.VARCHAR(50))
 
     organization = db.relationship("Organization", back_populates="city")
+    user_info = db.relationship("UserInfo", back_populates="city")
 
 

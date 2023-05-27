@@ -9,6 +9,7 @@ class Region(BaseModel):
     name = db.Column(db.VARCHAR(30))
 
     organization = db.relationship("Organization", back_populates="region")
+    user_info = db.relationship("UserInfo", back_populates="region")
 
     @property
     def data(self):

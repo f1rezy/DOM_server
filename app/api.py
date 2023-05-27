@@ -62,14 +62,11 @@ def login():
 
 @bp.route("/register", methods=["POST"])
 def register():
-    first_name = request.json.get("first_name", None)
-    last_name = request.json.get("last_name", None)
-    second_name = request.json.get("second_name", None)
+    second_name, first_name, last_name = request.json.get("name", None).split()
     region_id = request.json.get("region_id", None)
     email = request.json.get("email", None)
     phone = request.json.get("phone", None)
     password = request.json.get("password", None)
-    icon = request.files["icon"]
 
     if email:
         user = UserInfo.query.filter_by(email=email).one_or_none()
@@ -80,9 +77,6 @@ def register():
         user = UserInfo(email=email, first_name=first_name, last_name=last_name, second_name=second_name,
                         region_id=region_id, phone=phone, password=generate_password_hash(password))
         db.session.add(user)
-        file = File(name=icon.filename, data=icon.read(), type="icon")
-        db.session.add(file)
-        user.icon_id = file.id
         db.session.commit()
         return jsonify({"status": True})
 
@@ -92,9 +86,7 @@ def register():
 @bp.route("/update_userdata", methods=["PUT"])
 @jwt_required()
 def update_userdata():
-    first_name = request.json.get("first_name", None)
-    last_name = request.json.get("last_name", None)
-    second_name = request.json.get("second_name", None)
+    second_name, first_name, last_name = request.json.get("name", None).split()
     region_id = request.json.get("second_name", None)
     email = request.json.get("email", None)
     phone = request.json.get("phone", None)
@@ -161,14 +153,6 @@ def create_organization():
 
 @bp.route("/events", methods=["GET"])
 def get_events():
-    name = request.args.get('name', type=str)
-    online = request.args.get('online', type=bool)
-    level = request.args.get('level', type=str)
-    region = request.args.get('region', type=str)
-    city = request.args.get('city', type=str)
-    start_age = request.args.get("start_age", type=int)
-    end_age = request.args.get("end_date", type=int)
-
     return jsonify([
         {
             "id": event.id,
@@ -203,7 +187,7 @@ def get_event(id):
                 '%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
             "level": event.level.name,
             "ages": event.ages,
-            "organization": event.organization.full_name,
+            "organization_id": event.organization_id,
             "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", event.files)][0],
             "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
             "extra": event.extra,
@@ -236,6 +220,7 @@ def create_event():
         extra = request.json.get("extra", None)
         banner = request.files["banner"]
         doc = request.files["doc"]
+        fields = request.json.get("fields", None)
         status = request.json.get("status", None)
         origin = request.json.get("origin", None)
 
