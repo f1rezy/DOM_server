@@ -162,8 +162,8 @@ def get_events():
             "id": event.id,
             "name": event.name,
             "online": event.online,
-            "start_date": event.start_date,
-            "end_date": event.end_date,
+            "start_date": event.start_date.strftime("%d.%m.%Y"),
+            "end_date": event.end_date.strftime("%d.%m.%Y") if event.end_date else "",
             "level": event.level.name,
             "ages": event.ages,
             "organization_id": event.organization_id,
@@ -209,6 +209,15 @@ def get_event():
 def get_file(id):
     file = File.query.filter_by(id=id).one_or_none()
     return send_file(BytesIO(file.data), download_name=file.name, as_attachment=True)
+
+
+@bp.route("/file", methods=["POST"])
+def add_file():
+    upload = request.files["file"]
+    file = File(name=upload.filename, data=upload.read())
+    db.session.add(file)
+    db.session.commit()
+    return jsonify({"status": True})
 
 
 @bp.route("/file", methods=["POST"])
