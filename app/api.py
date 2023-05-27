@@ -174,15 +174,15 @@ def get_events():
 
 @bp.route("/events-by-filter", methods=["POST"])
 def get_events_by_filter():
-    name = request.json.get('name', "")
-    level_id = request.json.get('level_id', None)
+    name = request.json.get('name', "") #
+    level_id = request.json.get('level_id', None) #
     region_id = request.json.get('region_id', None)
     city_id = request.json.get('city_id', None)
-    age_start = request.json.get('age_start', 0)
-    age_end = request.json.get('age_end', 200)
+    age_start = request.json.get('age_start', 0) #
+    age_end = request.json.get('age_end', 200) #
     fields_id = set(request.json.get('fields_id', []))
-    online = request.json.get('online', False)
-    fcdo = request.json.get('fcdo', False)
+    online = request.json.get('online', False) #
+    fcdo = request.json.get('fcdo', False) #
 
     events = db.session.query(Event).filter(Event.name.like(f"%{name}%"))
     events = events.filter(Event.fcdo == fcdo).filter(Event.online == online)
@@ -201,11 +201,11 @@ def get_events_by_filter():
     del events
 
     if fields_id:
-        new_events = list(filter(lambda event: set([field.id for field in event.fields]) & set(fields_id), new_events))
+        new_events = list(filter(lambda x: set([str(field.id) for field in x.fields]).intersection(set(fields_id)), new_events))
     if region_id:
-        new_events = list(filter(lambda i: i.organization.region_id == region_id, new_events))
+        new_events = list(filter(lambda i: str(i.organization.region_id) == region_id, new_events))
     if city_id:
-        new_events = list(filter(lambda i: i.organization.city_id == city_id, new_events))
+        new_events = list(filter(lambda i: str(i.organization.city_id) == city_id, new_events))
 
     return jsonify([
         {
