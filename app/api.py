@@ -1,8 +1,7 @@
 import datetime
-import math
 from io import BytesIO
 
-from flask import Blueprint, send_file, url_for
+from flask import Blueprint, send_file
 from flask import jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token, set_access_cookies, unset_jwt_cookies, jwt_required, \
     current_user, get_jwt_identity, get_jwt
@@ -80,7 +79,6 @@ def register():
         db.session.add(user)
         db.session.commit()
         return jsonify({"status": True})
-
     return jsonify({"status": False})
 
 
@@ -88,7 +86,7 @@ def register():
 @jwt_required()
 def update_userdata():
     second_name, first_name, last_name = request.json.get("name", None).split()
-    region_id = request.json.get("second_name", None)
+    region_id = request.json.get("region_id", None)
     email = request.json.get("email", None)
     phone = request.json.get("phone", None)
 
@@ -118,6 +116,12 @@ def get_user_data():
     return jsonify(current_user.data)
 
 
+@bp.route("/organization/<id>", methods=["GET"])
+def get_organization(id):
+    organization = db.session.query(Organization).filter(Organization.id == id).first()
+    return jsonify(organization.data)
+
+
 @bp.route("/organization", methods=["POST"])
 @jwt_required()
 def create_organization():
@@ -128,7 +132,7 @@ def create_organization():
     email = request.json.get("email", None)
     site = request.json.get("site", None)
     confirmed = request.json.get("confirmed", None)
-    # logo = request.files["logo"]
+    logo = request.files["logo"]
     region_id = request.json.get("region_id", None)
     city_id = request.json.get("city_id", None)
 
@@ -140,9 +144,9 @@ def create_organization():
                                     email=email, site=site, confirmed=confirmed, region_id=region_id,
                                     city_id=city_id)
         db.session.add(organization)
-        # file = File(name=logo.filename, data=logo.read(), type="logo")
-        # db.session.add(file)
-        # organization.logo_id = file.id
+        file = File(name=logo.filename, data=logo.read(), type="logo")
+        db.session.add(file)
+        organization.logo_id = file.id
         current_user.organization_id = organization.id
         admin_role = Role.query.filter_by(name="Admin").one_or_none()
         current_user.role_id = admin_role.id
@@ -228,33 +232,7 @@ def get_events_by_filter():
 @bp.route("/event/<id>", methods=["GET"])
 def get_event(id):
     event = db.session.query(Event).filter(Event.id == id).first()
-    return jsonify([
-        {
-            "id": event.id,
-            "name": event.name,
-            "description": event.description,
-            "reg_form": event.description,
-            "fcdo": event.fcdo,
-            "online": event.online,
-            "region": event.organization.region.name if not event.online else "",
-            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime(
-                '%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
-            "level": event.level.name,
-            "ages": event.ages,
-            "organization_id": event.organization_id,
-            "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", event.files)][0],
-            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
-            "extra": event.extra,
-            "status": event.status.name,
-            "origin": event.origin,
-            "fields": [str(field.name) for field in event.fields]
-        }])
-
-
-@bp.route("/organization/<id>", methods=["GET"])
-def get_organization(id):
-    organization = db.session.query(Organization).filter(Organization.id == id).first()
-    return jsonify(organization.data)
+    return jsonify(event.data)
 
 
 @bp.route("/event", methods=["POST"])

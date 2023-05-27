@@ -28,5 +28,26 @@ class Event(BaseModel):
     users_info = db.relationship("UserInfo", secondary=event_to_user_info, back_populates="events")
     fields = db.relationship("Field", secondary=event_to_field, back_populates="events")
 
+    @property
+    def data(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "reg_form": self.reg_form,
+            "online": self.online,
+            "fcdo": self.fcdo,
+            "date": self.start_date.strftime('%d.%m.%y') + "-" + self.end_date.strftime(
+                '%d.%m.%y') if self.end_date else self.start_date.strftime("%d.%m.%y"),
+            "level": self.level.name,
+            "ages": self.ages,
+            "organization": self.organization.full_name,
+            "extra": self.extra,
+            "status": self.status.name,
+            "origin": self.origin,
+            "fields": [str(field.name) for field in self.fields],
+            "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", self.files)][0],
+            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", self.files)][0]
+        }
+
 
 

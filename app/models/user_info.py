@@ -41,9 +41,11 @@ class UserInfo(BaseModel):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "second_name": self.second_name,
-            "region_id": self.region_id,
-            "city_id": self.city_id,
-            "phone": self.phone
+            "region": self.region.name,
+            "city": self.city.name,
+            "phone": self.phone,
+            "organization": self.organization.full_name,
+            "role": self.role.name
         }
 
     def set_password(self, password):

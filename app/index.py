@@ -29,31 +29,4 @@ app.register_blueprint(bp, url_prefix="/api")
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        # event = Event()
-        # event.name = "II краевой робототехнический турнир"
-        # event.description = "1234567890876542123456789"
-        # event.reg_form = ""
-        # event.online = True
-        # event.fcdo = False
-        # event.start_date = "2023-08-21"
-        # level = Level(name="Межрегиональный")
-        # db.session.add(level)
-        # event.level_id = level.id
-        # event.ages = "10 - 14"
-        # event.organization_id = "98d948e8-ef0d-4c57-b7f3-8ed81637003e"
-        # event.extra = "duaudhadhadhaiu"
-        # status = EventStatus(name="Регистрация закрыта")
-        # db.session.add(status)
-        # event.status_id = status.id
-        # event.origin = "waqezsdxfcgvhbjkml"
-        # db.session.add(event)
-        # db.session.commit()
-
-        # event = db.session.query(Event).filter(Event.name == "II краевой робототехнический турнир").first()
-        # file = db.session.query(File).filter(File.type == "banner").first()
-        # doc = db.session.query(File).filter(File.type == "doc").first()
-        # event.files.append(file)
-        # event.files.append(doc)
-        # db.session.commit()
-
     app.run()
