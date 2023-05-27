@@ -167,7 +167,7 @@ def get_events():
             "level": event.level.name,
             "ages": event.ages,
             "organization": event.organization.full_name,
-            "files": [(r"/file/" + str(file.id), str(file.type)) for file in event.files],
+            "files": [("/api/file/" + str(file.id), str(file.type)) for file in event.files],
             "status": event.status.name,
             "fields": [str(field.name) for field in event.fields]
         } for event in db.session.query(Event).all()])
