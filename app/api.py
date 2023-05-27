@@ -43,15 +43,11 @@ def refresh_expiring_jwts(response):
 
 @bp.route("/login", methods=["POST"])
 def login():
-    email = request.json.get("email", None)
-    phone = request.json.get("phone", None)
+    login = request.json.get("login", None)
     password = request.json.get("password", None)
 
     try:
-        if email:
-            user = UserInfo.query.filter_by(email=email).one_or_none()
-        elif phone:
-            user = UserInfo.query.filter_by(phone=phone).one_or_none()
+        user = UserInfo.query.filter((UserInfo.email == login) | (UserInfo.phone == login)).one_or_none()
     except Exception as e:
         return jsonify({"msg": "error"})
 
@@ -165,6 +161,11 @@ def create_organization():
 
 @bp.route("/events", methods=["GET"])
 def get_events():
+    # online = request.args.get('online', type=bool)
+    # level = request.args.get('level', type=str)
+    # region = request.args.get('region', type=bool)
+    # city = request.args.get('city', type=bool)
+    # start_age =
     return jsonify([
         {
             "id": event.id,
