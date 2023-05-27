@@ -162,19 +162,50 @@ def get_events():
             "id": event.id,
             "name": event.name,
             "online": event.online,
-            "start_date": event.start_date.strftime("%d.%m.%Y"),
-            "end_date": event.end_date.strftime("%d.%m.%Y") if event.end_date else "",
+            "region": event.organization.region.name if not event.online else "",
+            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime('%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
             "level": event.level.name,
             "ages": event.ages,
-            "organization_id": event.organization_id,
-            "files": [(str(file.id), str(file.type)) for file in event.files],
-            "status": event.status.name
+            "organization": event.organization.full_name,
+            "files": [(r"/file/" + str(file.id), str(file.type)) for file in event.files],
+            "status": event.status.name,
+            "fields": [str(field.name) for field in event.fields]
         } for event in db.session.query(Event).all()])
+
+
+@bp.route("/event/<id>", methods=["GET"])
+def get_event(id):
+    event = db.session.query(Event).filter(Event.id == id).first()
+    return jsonify([
+        {
+            "id": event.id,
+            "name": event.name,
+            "description": event.description,
+            "reg_form": event.description,
+            "fcdo": event.fcdo,
+            "online": event.online,
+            "region": event.organization.region.name if not event.online else "",
+            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime('%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
+            "level": event.level.name,
+            "ages": event.ages,
+            "organization": event.organization.full_name,
+            "files": [(r"/api/file/" + str(file.id), str(file.type)) for file in event.files],
+            "extra": event.extra,
+            "status": event.status.name,
+            "origin": event.origin,
+            "fields": [str(field.name) for field in event.fields]
+        }])
+
+
+@bp.route("/organization/<id>", methods=["GET"])
+def get_organization(id):
+    organization = db.session.query(Organization).filter(Organization.id == id).first()
+    return jsonify(organization.data)
 
 
 @bp.route("/event", methods=["POST"])
 @jwt_required()
-def get_event():
+def create_event():
     if current_user.role_id == Role.query.filter_by(name="Admin").one_or_none().id:
         name = request.json.get("name", None)
         description = request.json.get("description", None)

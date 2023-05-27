@@ -24,3 +24,18 @@ class Organization(BaseModel):
     events = db.relationship("Event", back_populates="organization")
     organization_role_user = db.relationship("OrganizationRoleUser", back_populates="organization")
 
+    @property
+    def data(self):
+        return {
+            "id": self.id,
+            "short_name": self.short_name,
+            "full_name": self.full_name,
+            "address": self.address,
+            "tax_number": self.tax_number,
+            "email": self.email,
+            "site": self.site,
+            "confirmed": self.confirmed,
+            "logo": r"/api/file/" + str(self.logo_id),
+            "region": self.region.name,
+            "city": self.city.name
+        }
