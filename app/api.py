@@ -134,7 +134,7 @@ def create_organization():
     email = request.json.get("email", None)
     site = request.json.get("site", None)
     confirmed = request.json.get("confirmed", None)
-    logo_id = request.json.get("logo_id", None)
+    logo = request.files["logo"]
     region_id = request.json.get("region_id", None)
     city_id = request.json.get("city_id", None)
 
@@ -143,9 +143,12 @@ def create_organization():
     if not organization and short_name and full_name and address and tax_number and email \
             and site and confirmed and region_id and city_id:
         organization = Organization(short_name=short_name, full_name=full_name, address=address, tax_number=tax_number,
-                                    email=email, site=site, confirmed=confirmed, logo_id=logo_id, region_id=region_id,
+                                    email=email, site=site, confirmed=confirmed, region_id=region_id,
                                     city_id=city_id)
         db.session.add(organization)
+        file = File(name=logo.filename, data=logo.read(), type="logo")
+        db.session.add(file)
+        organization.logo_id = file.id
         current_user.organization_id = organization.id
         admin_role = Role.query.filter_by(name="Admin").one_or_none()
         current_user.role_id = admin_role.id
@@ -218,27 +221,27 @@ def create_event():
         fcdo = request.json.get("fcdo", None)
         start_date = request.json.get("start_date", None)
         end_date = request.json.get("end_date", None)
-        level_id = request.json.get("level_id", None)
+        level = request.json.get("level", None)
         ages = request.json.get("ages", None)
         organization_id = request.json.get("organization_id", None)
         extra = request.json.get("extra", None)
         banner = request.files["banner"]
-        banner_id = request.json.get("banner_id", None)
         doc = request.files["doc"]
-        doc_id = request.json.get("doc_id", None)
         status = request.json.get("status", None)
         origin = request.json.get("origin", None)
 
         event = Event.query.filter_by(name=name).one_or_none()
 
-        if not event and name and description and online and fcdo and start_date and level_id and ages \
-                and organization_id and banner_id and doc_id and status:
+        if not event and name and description and online and fcdo and start_date and level and ages \
+                and organization_id and banner and doc and status:
             event = Event(name=name, description=description, reg_form=reg_form, online=online, fcdo=fcdo,
-                          start_date=start_date, end_date=end_date, level_id=level_id, ages=ages,
+                          start_date=start_date, end_date=end_date, ages=ages,
                           organization_id=organization_id, extra=extra, origin=origin)
             db.session.add(event)
             status_id = db.session.query(EventStatus).filter(EventStatus.name == status).first()
             event.status_id = status_id
+            level_id = db.session.query(Level).filter(Level.name == level).first()
+            event.level_id = level_id
             file = File(name=banner.filename, data=banner.read(), type="banner")
             event.files.append(file)
             event.banner_id = file.id
@@ -255,12 +258,3 @@ def create_event():
 def get_file(id):
     file = File.query.filter_by(id=id).one_or_none()
     return send_file(BytesIO(file.data), download_name=file.name, as_attachment=True)
-
-
-@bp.route("/file", methods=["POST"])
-def add_file():
-    upload = request.files["file"]
-    file = File(name=upload.filename, data=upload.read())
-    db.session.add(file)
-    db.session.commit()
-    return jsonify({"status": True})
