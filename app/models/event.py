@@ -1,3 +1,5 @@
+from sqlalchemy.ext.associationproxy import association_proxy
+
 from database import db
 from .base import BaseModel
 from .many_to_many_relations import *
@@ -22,8 +24,10 @@ class Event(BaseModel):
 
     level = db.relationship("Level", back_populates="events")
     organization = db.relationship("Organization", back_populates="events")
-    files = db.relationship("File", secondary=event_to_file, back_populates="event")
     status = db.relationship("EventStatus", back_populates="events")
+    event_files = db.relationship("EventFile", back_populates="event")
+
+    files = association_proxy("event_files", "event")
 
     users_info = db.relationship("UserInfo", secondary=event_to_user_info, back_populates="events")
     fields = db.relationship("Field", secondary=event_to_field, back_populates="events")
