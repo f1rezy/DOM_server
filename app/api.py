@@ -171,7 +171,7 @@ def get_events():
         } for event in db.session.query(Event).all()])
 
 
-@bp.route("/events-by-filter", methods=["GET"])
+@bp.route("/events-by-filter", methods=["PUT"])
 def get_events_by_filter():
     name = request.json.get('name', None)
     level_id = request.json.get('level_id', None)
