@@ -35,7 +35,7 @@ class Organization(BaseModel):
             "email": self.email,
             "site": self.site,
             "confirmed": self.confirmed,
-            "logo": r"/api/file/" + str(self.logo_id),
+            "logo": "/api/file/" + str(self.logo_id),
             "region": self.region.name,
             "city": self.city.name
         }

@@ -163,11 +163,13 @@ def get_events():
             "name": event.name,
             "online": event.online,
             "region": event.organization.region.name if not event.online else "",
-            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime('%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
+            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime(
+                '%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
             "level": event.level.name,
             "ages": event.ages,
             "organization": event.organization.full_name,
-            "files": [("/api/file/" + str(file.id), str(file.type)) for file in event.files],
+            "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", event.files)][0],
+            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
             "status": event.status.name,
             "fields": [str(field.name) for field in event.fields]
         } for event in db.session.query(Event).all()])
@@ -185,11 +187,13 @@ def get_event(id):
             "fcdo": event.fcdo,
             "online": event.online,
             "region": event.organization.region.name if not event.online else "",
-            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime('%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
+            "date": event.start_date.strftime('%d.%m.%y') + "-" + event.end_date.strftime(
+                '%d.%m.%y') if event.end_date else event.start_date.strftime("%d.%m.%y"),
             "level": event.level.name,
             "ages": event.ages,
             "organization": event.organization.full_name,
-            "files": [(r"/api/file/" + str(file.id), str(file.type)) for file in event.files],
+            "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", event.files)][0],
+            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
             "extra": event.extra,
             "status": event.status.name,
             "origin": event.origin,
@@ -218,18 +222,29 @@ def create_event():
         ages = request.json.get("ages", None)
         organization_id = request.json.get("organization_id", None)
         extra = request.json.get("extra", None)
+        banner = request.files["banner"]
         banner_id = request.json.get("banner_id", None)
+        doc = request.files["doc"]
         doc_id = request.json.get("doc_id", None)
-        status_id = request.json.get("status_id", None)
+        status = request.json.get("status", None)
         origin = request.json.get("origin", None)
 
         event = Event.query.filter_by(name=name).one_or_none()
 
         if not event and name and description and online and fcdo and start_date and level_id and ages \
-                and organization_id and banner_id and doc_id and status_id:
-            db.session.add(Event(name=name, description=description, reg_form=reg_form, online=online, fcdo=fcdo,
-                                 start_date=start_date, end_date=end_date, level_id=level_id, ages=ages,
-                                 organization_id=organization_id, extra=extra, status_id=status_id, origin=origin))
+                and organization_id and banner_id and doc_id and status:
+            event = Event(name=name, description=description, reg_form=reg_form, online=online, fcdo=fcdo,
+                          start_date=start_date, end_date=end_date, level_id=level_id, ages=ages,
+                          organization_id=organization_id, extra=extra, origin=origin)
+            db.session.add(event)
+            status_id = db.session.query(EventStatus).filter(EventStatus.name == status).first()
+            event.status_id = status_id
+            file = File(name=banner.filename, data=banner.read(), type="banner")
+            event.files.append(file)
+            event.banner_id = file.id
+            file = File(name=doc.filename, data=doc.read(), type="doc")
+            event.files.append(file)
+            event.doc_id = file.id
             db.session.commit()
             return jsonify({"status": True})
 
@@ -249,4 +264,3 @@ def add_file():
     db.session.add(file)
     db.session.commit()
     return jsonify({"status": True})
-
