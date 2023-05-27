@@ -73,6 +73,7 @@ def register():
     email = request.json.get("email", None)
     phone = request.json.get("phone", None)
     password = request.json.get("password", None)
+    icon = request.files["icon"]
 
     if email:
         user = UserInfo.query.filter_by(email=email).one_or_none()
@@ -80,8 +81,12 @@ def register():
         user = UserInfo.query.filter_by(phone=phone).one_or_none()
 
     if not user and first_name and last_name and second_name and region_id and password and (email or phone):
-        db.session.add(UserInfo(email=email, first_name=first_name, last_name=last_name, second_name=second_name,
-                                region_id=region_id, phone=phone, password=generate_password_hash(password)))
+        user = UserInfo(email=email, first_name=first_name, last_name=last_name, second_name=second_name,
+                        region_id=region_id, phone=phone, password=generate_password_hash(password))
+        db.session.add(user)
+        file = File(name=icon.filename, data=icon.read(), type="icon")
+        db.session.add(file)
+        user.icon_id = file.id
         db.session.commit()
         return jsonify({"status": True})
 
@@ -258,3 +263,6 @@ def create_event():
 def get_file(id):
     file = File.query.filter_by(id=id).one_or_none()
     return send_file(BytesIO(file.data), download_name=file.name, as_attachment=True)
+
+
+
