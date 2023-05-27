@@ -1,4 +1,5 @@
 import datetime
+import math
 from io import BytesIO
 
 from flask import Blueprint, send_file, url_for
@@ -57,7 +58,7 @@ def login():
     response = jsonify({"status": True})
     access_token = create_access_token(identity=user.id)
     set_access_cookies(response, access_token)
-    return response
+    return jsonify(access_token=access_token)
 
 
 @bp.route("/register", methods=["POST"])
@@ -173,36 +174,38 @@ def get_events():
 
 @bp.route("/events-by-filter", methods=["POST"])
 def get_events_by_filter():
-    name = request.json.get('name', None)
+    name = request.json.get('name', "")
     level_id = request.json.get('level_id', None)
     region_id = request.json.get('region_id', None)
     city_id = request.json.get('city_id', None)
-    ages = request.json.get('ages', None)
-    fields_id = request.json.get('fields_id', None)
-    online = request.json.get('online', None)
-    fcdo = request.json.get('fcdo', None)
+    age_start = request.json.get('age_start', 0)
+    age_end = request.json.get('age_end', 200)
+    fields_id = set(request.json.get('fields_id', []))
+    online = request.json.get('online', False)
+    fcdo = request.json.get('fcdo', False)
 
-    events = []
-    for event in db.session.query(Event).all():
-        if name and name not in event.name:
-            continue
-        if level_id and level_id != event.level_id:
-            continue
-        if region_id and region_id != event.organization.region_id:
-            continue
-        if city_id and city_id != event.organization.city_id:
-            continue
-        if ages and ages != event.ages:
-            continue
-        if fields_id:
-            for i in [str(j.id) for j in event.fields]:
-                if i in fields_id:
-                    if online == event.online and fcdo == event.fcdo:
-                        events.append(event)
-                        break
-        else:
-            if online == event.online and fcdo == event.fcdo:
-                events.append(event)
+    events = db.session.query(Event).filter(Event.name.like(f"%{name}%"))
+    events = events.filter(Event.fcdo == fcdo).filter(Event.online == online)
+    if level_id:
+        events = events.filter(Event.level_id == level_id)
+
+    events = events.all()
+
+    new_events = []
+
+    for event in events:
+        ages = event.ages.split(" - ")
+        if set(range(int(ages[0]), int(ages[1]) + 1)) & set((range(age_start, age_end + 1))):
+            new_events.append(event)
+
+    del events
+
+    if fields_id:
+        new_events = list(filter(lambda event: set([field.id for field in event.fields]) & set(fields_id), new_events))
+    if region_id:
+        new_events = list(filter(lambda i: i.organization.region_id == region_id, new_events))
+    if city_id:
+        new_events = list(filter(lambda i: i.organization.city_id == city_id, new_events))
 
     return jsonify([
         {
@@ -219,7 +222,7 @@ def get_events_by_filter():
             "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
             "status": event.status.name,
             "fields": [str(field.name) for field in event.fields]
-        } for event in events])
+        } for event in new_events])
 
 
 @bp.route("/event/<id>", methods=["GET"])
