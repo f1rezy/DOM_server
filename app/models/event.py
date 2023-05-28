@@ -41,7 +41,7 @@ class Event(BaseModel):
                 '%d.%m.%y') if self.end_date else self.start_date.strftime("%d.%m.%y"),
             "level": self.level.name,
             "ages": self.ages,
-            "organization": self.organization.full_name,
+            "organization": self.organization_id,
             "extra": self.extra,
             "status": self.status.name,
             "origin": self.origin,
