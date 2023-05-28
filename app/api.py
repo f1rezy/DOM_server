@@ -54,10 +54,10 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({"status": False}), 401
 
-    response = jsonify({"status": True})
     access_token = create_access_token(identity=user.id)
+    response = jsonify(access_token=access_token)
     set_access_cookies(response, access_token)
-    return jsonify(access_token=access_token)
+    return response
 
 
 @bp.route("/register", methods=["POST"])
@@ -178,15 +178,15 @@ def get_events():
 
 @bp.route("/events-by-filter", methods=["POST"])
 def get_events_by_filter():
-    name = request.json.get('name', "") #
-    level_id = request.json.get('level_id', None) #
+    name = request.json.get('name', "").lower()
+    level_id = request.json.get('level_id', None)
     region_id = request.json.get('region_id', None)
     city_id = request.json.get('city_id', None)
-    age_start = request.json.get('age_start', 0) #
-    age_end = request.json.get('age_end', 200) #
+    age_start = request.json.get('age_start', 0)
+    age_end = request.json.get('age_end', 200)
     fields_id = set(request.json.get('fields_id', []))
-    online = request.json.get('online', False) #
-    fcdo = request.json.get('fcdo', False) #
+    online = request.json.get('online', False)
+    fcdo = request.json.get('fcdo', False)
 
     events = db.session.query(Event).filter(Event.name.like(f"%{name}%"))
     events = events.filter(Event.fcdo == fcdo).filter(Event.online == online)
@@ -205,7 +205,8 @@ def get_events_by_filter():
     del events
 
     if fields_id:
-        new_events = list(filter(lambda x: set([str(field.id) for field in x.fields]).intersection(set(fields_id)), new_events))
+        new_events = list(
+            filter(lambda x: set([str(field.id) for field in x.fields]).intersection(set(fields_id)), new_events))
     if region_id:
         new_events = list(filter(lambda i: str(i.organization.region_id) == region_id, new_events))
     if city_id:
@@ -305,3 +306,11 @@ def get_levels():
 @bp.route("/fields", methods=["GET"])
 def get_fields():
     return jsonify([field.data for field in db.session.query(Field).all()])
+
+
+@bp.route("/is_in_organization", methods=["GET"])
+@jwt_required()
+def is_in_organization():
+    if current_user.role_id == "":
+        return jsonify({"status": True})
+    return jsonify({"status": False})
