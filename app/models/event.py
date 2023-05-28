@@ -34,6 +34,8 @@ class Event(BaseModel):
             "name": self.name,
             "description": self.description,
             "region": self.organization.region.name,
+            "city": self.organization.city.name,
+            "address": self.organization.address,
             "reg_form": self.reg_form,
             "online": self.online,
             "fcdo": self.fcdo,
