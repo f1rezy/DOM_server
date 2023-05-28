@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import BYTEA
 class File(BaseModel):
     __tablename__ = "file"
 
-    name = db.Column(db.VARCHAR(50))
+    name = db.Column(db.TEXT())
     data = db.Column(BYTEA())
     type = db.Column(db.VARCHAR(30))
 
