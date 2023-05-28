@@ -52,7 +52,7 @@ class Event(BaseModel):
             "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", self.files)][0],
             "docs": [{"name": str(file.name), "data": "/api/file/" + str(file.id)} for file in
                      filter(lambda x: x.type == "doc", self.files)],
-            "organization_logo": "/api/file/" + str(self.organization.logo.name)
+            "organization_logo": "/api/file/" + str(self.organization.logo.id)
         }
 
 
