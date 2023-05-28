@@ -188,7 +188,7 @@ def get_events():
 
 @bp.route("/events-by-filter", methods=["POST"])
 def get_events_by_filter():
-    name = request.json.get('name', "").lower()
+    name = request.json.get('name', "")
     level_id = request.json.get('level_id', None)
     region_id = request.json.get('region_id', None)
     city_id = request.json.get('city_id', None)
