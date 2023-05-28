@@ -145,7 +145,7 @@ def create_organization():
     organization = Organization.query.filter_by(full_name=full_name).one_or_none()
 
     if not organization and short_name and full_name and address and tax_number and email \
-            and site and confirmed and region_id and city_id:
+            and site and confirmed and region_id and city_id and logo:
         organization = Organization(short_name=short_name, full_name=full_name, address=address, tax_number=tax_number,
                                     email=email, site=site, confirmed=confirmed, region_id=region_id,
                                     city_id=city_id)
