@@ -29,7 +29,7 @@ class Organization(BaseModel):
             "id": self.id,
             "short_name": self.short_name,
             "full_name": self.full_name,
-            "address": f"{self.region.name} {self.city.name} {self.address}",
+            "address": f"{self.region.name}, {self.city.name}, {self.address}",
             "tax_number": self.tax_number,
             "email": self.email,
             "site": self.site,
