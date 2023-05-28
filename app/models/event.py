@@ -33,6 +33,7 @@ class Event(BaseModel):
         return {
             "name": self.name,
             "description": self.description,
+            "region": self.organization.region.name,
             "reg_form": self.reg_form,
             "online": self.online,
             "fcdo": self.fcdo,
@@ -47,7 +48,8 @@ class Event(BaseModel):
             "fields": [str(field.name) for field in self.fields],
             "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", self.files)][0],
             "docs": [{"name": str(file.name), "data": "/api/file/" + str(file.id)} for file in
-                     filter(lambda x: x.type == "doc", self.files)]
+                     filter(lambda x: x.type == "doc", self.files)],
+            "organization_logo": "/api/file/" + str(self.organization.logo.name)
         }
 
 
