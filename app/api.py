@@ -321,4 +321,4 @@ def get_fields():
 def is_in_organization():
     if current_user.role_id is None:
         return jsonify({"status": False})
-    return jsonify({"status": True})
+    return jsonify({"status": True, "organization_id": current_user.organization_id})
