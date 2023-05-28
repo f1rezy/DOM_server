@@ -131,24 +131,22 @@ def get_organization(id):
 @bp.route("/organization", methods=["POST"])
 @jwt_required()
 def create_organization():
-    short_name = request.json.get("short_name", None)
-    full_name = request.json.get("full_name", None)
-    address = request.json.get("address", None)
-    tax_number = request.json.get("tax_number", None)
-    email = request.json.get("email", None)
-    site = request.json.get("site", None)
-    confirmed = request.json.get("confirmed", False)
+    short_name = request.form.get("short_name", None)
+    full_name = request.form.get("full_name", None)
+    address = request.form.get("address", None)
+    tax_number = request.form.get("tax_number", None)
+    email = request.form.get("email", None)
+    site = request.form.get("site", None)
     logo = request.files["logo"]
-    region_id = request.json.get("region_id", None)
-    city_id = request.json.get("city_id", None)
+    region_id = request.form.get("region_id", None)
+    city_id = request.form.get("city_id", None)
 
     organization = Organization.query.filter_by(full_name=full_name).one_or_none()
 
     if not organization and short_name and full_name and address and tax_number and email \
-            and site and confirmed and region_id and city_id and logo:
+            and site and region_id and city_id and logo:
         organization = Organization(short_name=short_name, full_name=full_name, address=address, tax_number=tax_number,
-                                    email=email, site=site, confirmed=confirmed, region_id=region_id,
-                                    city_id=city_id)
+                                    email=email, site=site, region_id=region_id, city_id=city_id)
         db.session.add(organization)
         file = File(name=logo.filename, data=logo.read(), type="logo")
         db.session.add(file)
