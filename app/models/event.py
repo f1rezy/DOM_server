@@ -46,7 +46,8 @@ class Event(BaseModel):
             "origin": self.origin,
             "fields": [str(field.name) for field in self.fields],
             "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", self.files)][0],
-            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", self.files)][0]
+            "docs": [{"name": str(file.name), "data": "/api/file/" + str(file.id)} for file in
+                     filter(lambda x: x.type == "doc", self.files)]
         }
 
 

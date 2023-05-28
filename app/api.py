@@ -131,7 +131,7 @@ def create_organization():
     tax_number = request.json.get("tax_number", None)
     email = request.json.get("email", None)
     site = request.json.get("site", None)
-    confirmed = request.json.get("confirmed", None)
+    confirmed = request.json.get("confirmed", False)
     logo = request.files["logo"]
     region_id = request.json.get("region_id", None)
     city_id = request.json.get("city_id", None)
@@ -170,7 +170,8 @@ def get_events():
             "ages": event.ages,
             "organization": event.organization.full_name,
             "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", event.files)][0],
-            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
+            "docs": [{"name": str(file.name), "data": "/api/file/" + str(file.id)} for file in
+                     filter(lambda x: x.type == "doc", event.files)],
             "status": event.status.name,
             "fields": [str(field.name) for field in event.fields]
         } for event in db.session.query(Event).all()])
@@ -224,7 +225,8 @@ def get_events_by_filter():
             "ages": event.ages,
             "organization": event.organization.full_name,
             "banner": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "banner", event.files)][0],
-            "doc": ["/api/file/" + str(file.id) for file in filter(lambda x: x.type == "doc", event.files)][0],
+            "docs": [{"name": str(file.name), "data": "/api/file/" + str(file.id)} for file in
+                     filter(lambda x: x.type == "doc", event.files)],
             "status": event.status.name,
             "fields": [str(field.name) for field in event.fields]
         } for event in new_events])
@@ -311,6 +313,6 @@ def get_fields():
 @bp.route("/is_in_organization", methods=["GET"])
 @jwt_required()
 def is_in_organization():
-    if current_user.role_id == "":
-        return jsonify({"status": True})
-    return jsonify({"status": False})
+    if current_user.role_id is None:
+        return jsonify({"status": False})
+    return jsonify({"status": True})
