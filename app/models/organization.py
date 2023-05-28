@@ -16,7 +16,6 @@ class Organization(BaseModel):
     logo_id = db.Column(db.ForeignKey("file.id"))
     region_id = db.Column(db.ForeignKey("region.id"))
     city_id = db.Column(db.ForeignKey("city.id"))
-
     logo = db.relationship("File", back_populates="organization")
     region = db.relationship("Region", back_populates="organization")
     city = db.relationship("City", back_populates="organization")

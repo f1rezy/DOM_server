@@ -146,15 +146,20 @@ def create_organization():
     if not organization and short_name and full_name and address and tax_number and email \
             and site and region_id and city_id and logo:
         file = File(name=logo.filename, data=logo.read(), type="logo")
+        db.session.add(file)
+        db.session.commit()
+
+        file = db.session.query(File).filter(File.name == logo.filename).first()
         organization = Organization(short_name=short_name, full_name=full_name, address=address, tax_number=tax_number,
                                     email=email, site=site, region_id=region_id, city_id=city_id, logo_id=file.id)
-
+        db.session.add(organization)
+        db.session.commit()
+        organization = db.session.query(Organization).filter(Organization.tax_number == tax_number).first()
         current_user.organization_id = organization.id
         admin_role = Role.query.filter_by(name="Admin").first()
         current_user.role_id = admin_role.id
-        db.session.add(file)
-        db.session.add(organization)
         db.session.commit()
+
         return jsonify({"status": True})
 
     return jsonify({"status": False})
