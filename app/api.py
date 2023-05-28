@@ -147,13 +147,15 @@ def create_organization():
             and site and region_id and city_id and logo:
         organization = Organization(short_name=short_name, full_name=full_name, address=address, tax_number=tax_number,
                                     email=email, site=site, region_id=region_id, city_id=city_id)
-        db.session.add(organization)
+
         file = File(name=logo.filename, data=logo.read(), type="logo")
-        db.session.add(file)
+
         organization.logo_id = file.id
         current_user.organization_id = organization.id
         admin_role = Role.query.filter_by(name="Admin").one_or_none()
         current_user.role_id = admin_role.id
+        db.session.add(file)
+        db.session.add(organization)
         db.session.commit()
         return jsonify({"status": True})
 
