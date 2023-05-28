@@ -116,6 +116,12 @@ def get_user_data():
     return jsonify(current_user.data)
 
 
+@bp.route("/is_authorized", methods=["GET"])
+@jwt_required()
+def is_authorized():
+    return jsonify({"status": True})
+
+
 @bp.route("/organization/<id>", methods=["GET"])
 def get_organization(id):
     organization = db.session.query(Organization).filter(Organization.id == id).first()
