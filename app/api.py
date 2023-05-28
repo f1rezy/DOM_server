@@ -262,8 +262,8 @@ def create_event():
         ages = request.json.get("ages", None)
         organization_id = request.json.get("organization_id", None)
         extra = request.json.get("extra", None)
-        banner = request.files["banner"]
-        doc = request.files["doc"]
+        banner_file = request.files["banner"]
+        doc_file = request.files["doc"]
         fields = request.json.get("fields", None)
         status = request.json.get("status", None)
         origin = request.json.get("origin", None)
@@ -271,23 +271,24 @@ def create_event():
         event = Event.query.filter_by(name=name).one_or_none()
 
         if not event and name and description and online and fcdo and start_date and level and ages \
-                and organization_id and fields and banner and doc and status:
-            event = Event(name=name, description=description, reg_form=reg_form, online=online, fcdo=fcdo,
-                          start_date=start_date, end_date=end_date, ages=ages,
-                          organization_id=organization_id, extra=extra, origin=origin)
-            db.session.add(event)
-            event.fields.extend(fields)
+                and organization_id and fields and banner_file and doc_file and status:
             status_id = db.session.query(EventStatus).filter(EventStatus.name == status).first()
-            event.status_id = status_id
             level_id = db.session.query(Level).filter(Level.name == level).first()
-            event.level_id = level_id
-            file = File(name=banner.filename, data=banner.read(), type="banner")
-            event.files.append(file)
-            event.banner_id = file.id
-            file = File(name=doc.filename, data=doc.read(), type="doc")
-            event.files.append(file)
-            event.doc_id = file.id
+            banner = File(name=banner_file.filename, data=banner_file.read(), type="banner")
+            doc = File(name=doc_file.filename, data=doc_file.read(), type="doc")
+
+            event = Event(name=name, description=description, reg_form=reg_form, online=online, fcdo=fcdo,
+                          start_date=start_date, end_date=end_date, ages=ages, organization_id=organization_id,
+                          extra=extra, origin=origin, status_id=status_id, level_id=level_id)
+            event.fields.extend(fields)
+            event.files.append(banner)
+            event.banner_id = banner.id
+            event.files.append(doc)
+            event.doc_id = doc.id
+
+            db.session.add(event)
             db.session.commit()
+
             return jsonify({"status": True})
 
     return jsonify({"status": False})
